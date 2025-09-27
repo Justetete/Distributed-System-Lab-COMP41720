@@ -1,0 +1,143 @@
+{
+  "users": [
+    {
+      "name": "John Smith",
+      "id": 1,
+      "email": "john.smith@email.com"
+    },
+    {
+      "name": "Sarah Johnson",
+      "id": 2,
+      "email": "sarah.johnson@gmail.com"
+    },
+    {
+      "name": "Michael Brown",
+      "id": 3,
+      "email": "michael.brown@yahoo.com"
+    },
+    {
+      "name": "Emily Davis",
+      "id": 4,
+      "email": "emily.davis@outlook.com"
+    },
+    {
+      "name": "David Wilson",
+      "id": 5,
+      "email": "david.wilson@company.com"
+    },
+    {
+      "name": "Lisa Anderson",
+      "id": 6,
+      "email": "lisa.anderson@email.com"
+    },
+    {
+      "name": "Robert Taylor",
+      "id": 7,
+      "email": "robert.taylor@gmail.com"
+    },
+    {
+      "name": "Jessica Martinez",
+      "id": 8,
+      "email": "jessica.martinez@yahoo.com"
+    },
+    {
+      "name": "Christopher Lee",
+      "id": 9,
+      "email": "christopher.lee@outlook.com"
+    },
+    {
+      "name": "Amanda White",
+      "id": 10,
+      "email": "amanda.white@company.com"
+    },
+    {
+      "name": "James Rodriguez",
+      "id": 11,
+      "email": "james.rodriguez@email.com"
+    },
+    {
+      "name": "Michelle Garcia",
+      "id": 12,
+      "email": "michelle.garcia@gmail.com"
+    },
+    {
+      "name": "Daniel Thompson",
+      "id": 13,
+      "email": "daniel.thompson@yahoo.com"
+    },
+    {
+      "name": "Ashley Moore",
+      "id": 14,
+      "email": "ashley.moore@outlook.com"
+    },
+    {
+      "name": "Kevin Clark",
+      "id": 15,
+      "email": "kevin.clark@company.com"
+    }
+  ],
+  "individual_users_for_testing": [
+    {
+      "name": "Alex Johnson",
+      "id": 101,
+      "email": "alex.johnson@test.com"
+    },
+    {
+      "name": "Maria Gonzalez",
+      "id": 102,
+      "email": "maria.gonzalez@test.com"
+    },
+    {
+      "name": "Ryan Kim",
+      "id": 103,
+      "email": "ryan.kim@test.com"
+    },
+    {
+      "name": "Samantha Chen",
+      "id": 104,
+      "email": "samantha.chen@test.com"
+    },
+    {
+      "name": "Marcus Williams",
+      "id": 105,
+      "email": "marcus.williams@test.com"
+    }
+  ],
+  "users_for_update_testing": [
+    {
+      "name": "Updated Name",
+      "email": "updated.email@new.com"
+    },
+    {
+      "name": "John Doe Updated",
+      "email": "john.doe.updated@email.com"
+    }
+  ],
+  "edge_case_users": [
+    {
+      "name": "João Silva",
+      "id": 201,
+      "email": "joao.silva@brasil.com"
+    },
+    {
+      "name": "Müller Schmidt",
+      "id": 202,
+      "email": "muller.schmidt@germany.de"
+    },
+    {
+      "name": "François Dubois",
+      "id": 203,
+      "email": "francois.dubois@france.fr"
+    },
+    {
+      "name": "李小明",
+      "id": 204,
+      "email": "li.xiaoming@china.cn"
+    },
+    {
+      "name": "O'Connor Patrick",
+      "id": 205,
+      "email": "oconnor.patrick@ireland.ie"
+    }
+  ]
+}
