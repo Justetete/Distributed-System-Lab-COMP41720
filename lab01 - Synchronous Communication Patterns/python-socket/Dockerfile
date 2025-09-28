@@ -1,42 +1,26 @@
-# Use Python 3.11 slim image as base
-FROM python:3.11-slim
+FROM python:3.9-slim
 
-# Set working directory
 WORKDIR /app
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Create a non-root user for security
-RUN groupadd -r socketuser && useradd -r -g socketuser socketuser
-
-# Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install dependencies (if any)
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
-COPY server.py client.py test_suite.py ./
+# Copy application code
+COPY server.py client.py ./
 
-# Change ownership of files to non-root user
-RUN chown -R socketuser:socketuser /app
+# Create non-root user for security
+RUN groupadd -r socketapp && useradd -r -g socketapp socketapp
+RUN chown -R socketapp:socketapp /app
+USER socketapp
 
-# Switch to non-root user
-USER socketuser
-
-# Expose the port the server will run on
+# Expose port 8080
 EXPOSE 8080
 
-# Health check to ensure server is running
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python client.py "health check" || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost', 8080)); s.close()" || exit 1
 
-# Default command to run the server
-CMD ["python", "server.py"]
-
-# Alternative commands:
-# To run client: docker run <image> python client.py
-# To run tests: docker run <image> python test_suite.py
-# To run interactive client: docker run -it <image> python client.py
+# Default command
+CMD ["python", "server.py", "--host", "0.0.0.0"]
