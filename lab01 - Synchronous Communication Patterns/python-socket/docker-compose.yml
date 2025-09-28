@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  socket-server:
+    build: .
+    container_name: socket-server
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["python", "server.py", "--host", "0.0.0.0"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost', 8080)); s.close()"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  socket-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: socket-client
+    depends_on:
+      - socket-server
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Interactive mode - will exit after running
+    command: ["python", "client.py", "--host", "socket-server", "--message", "Hello from Docker!"]
+    profiles:
+      - client
+
+  socket-client-interactive:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: socket-client-interactive
+    depends_on:
+      - socket-server
+    environment:
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
+    command: ["python", "client.py", "--host", "socket-server", "--interactive"]
+    profiles:
+      - interactive
+
+  # Optional: Run tests in separate container
+  socket-tests:
+    build: .
+    container_name: socket-tests
+    command: ["python", "-m", "pytest", "test_socket.py", "-v"]
+    depends_on:
+      - socket-server
+    profiles:
+      - testing
+    environment:
+      - PYTHONUNBUFFERED=1
