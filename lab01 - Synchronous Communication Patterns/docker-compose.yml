@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # REST API
+  rest-service:
+    build:
+      context: ./python_rest_lab
+    container_name: rest-api
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+
+  # gRPC server
+  grpc-service:
+    build:
+      context: ./python_grpc_lab
+    container_name: grpc-api
+    ports:
+      - "50051:50051"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

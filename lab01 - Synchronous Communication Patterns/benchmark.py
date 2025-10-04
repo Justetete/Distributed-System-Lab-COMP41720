@@ -3,10 +3,13 @@ import requests
 import grpc
 import statistics
 from concurrent.futures import ThreadPoolExecutor
-
-
 import sys
-sys.path.insert(0,'/python_grpc_lab/generated')
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
+generated_dir = os.path.join(current_dir, 'python_grpc_lab', 'generated')
+sys.path.insert(0, generated_dir)
 from python_grpc_lab.generated import user_service_pb2, user_service_pb2_grpc
 
 

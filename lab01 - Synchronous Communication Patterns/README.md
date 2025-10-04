@@ -685,11 +685,14 @@ Input:
     Name="John Doe", ID=100, 
     Email="john@example.com"
 ```
+![Create User](/lab01%20-%20Synchronous%20Communication%20Patterns/image/grpc_create_user.png)
+
 - **Test Case 2: Duplicate ID Prevention**
 ```bash
 Input: Create user with existing ID
 Expected: Error message "User with this ID already exists"
 ```
+![Duplicate ID Prevention](/lab01%20-%20Synchronous%20Communication%20Patterns/image/grpc_duplicate_id_prevention.png)
 
 - **Test Case 3: Update User**
 ```bash
@@ -697,24 +700,29 @@ Input:
     Update ID=100, Name="John Smith"
 Expected: Success with updated name, email unchanged
 ```
+![](/lab01%20-%20Synchronous%20Communication%20Patterns/image/grpc_update_user.png)
 
 - **Test Case 4: Get Non-existent User**
 ```bash
 Input: GetUser(999)
 Expected: Error message "User not found"
 ```
+![](/lab01%20-%20Synchronous%20Communication%20Patterns/image/grpc_get_not_found_user.png)
 
 - **Test Case 5: Delete User**
 ```bash
 Input: DeleteUser(100)
 Expected: Success with deleted user details
 ```
+![](/lab01%20-%20Synchronous%20Communication%20Patterns/image/grpc_delete_user.png)
 
 - **Test Case 6: Get all users**
 ```bash
 Input:GetAllUsers
 Expected: Success with all user details
 ```
+![](/lab01%20-%20Synchronous%20Communication%20Patterns/image/grpc_get_all_users.png)
+
 #### 2. Automated Testing Script
 Execute `test_grpc_service.py`:
 ```bash
@@ -725,7 +733,7 @@ python server.py
 python test_grpc_service.py
 ```
 Test results shown below:
-
+![](/lab01%20-%20Synchronous%20Communication%20Patterns/image/grpc_demo.png)
 
 ## Part Four: Performance Comparison
 ### Benchmark Script
@@ -741,7 +749,17 @@ I create a benchmarking script compares the performance of REST and gRPC impleme
     - Tests performance under load
     - Simulates multiple simultaneous requests
 
-Sample Outpu
+### Quick start
+Step 1: build docker compose container
+```bash
+docker-compose up --build -d
+```
+Step 2: Execute `benchmark.py` file
+```bash
+python benchmark.py
+```
+
+Sample Output shown below:
 ```bash
 ============================================================
                   DISTRIBUTED SYSTEMS LAB                   

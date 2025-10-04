@@ -1,6 +1,15 @@
 import grpc
 import sys
-sys.path.append('generated')
+import os
+
+
+# Add the project root directory to the Python path for imports
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, project_root)
+
+generated_dir = os.path.join(project_root, 'python_grpc_lab', 'generated')
+sys.path.insert(0, generated_dir)
+
 import user_service_pb2
 import user_service_pb2_grpc
 
