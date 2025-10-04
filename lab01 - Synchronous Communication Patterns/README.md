@@ -106,13 +106,21 @@ python client.py --message "Hello World"
 ```bash
 python client.py --interactive
 ```
-![](/image)
+![](/lab01%20-%20Synchronous%20Communication%20Patterns/image/socket_local_running.png)
 
 #### 2. Docker Development
+```bash
+# 1. Build and start the server
+docker-compose up -d socket-server
 
+# 2. Send a single message
+docker-compose run --rm socket-client
+
+# 3. Run interactive client
+docker-compose --profile interactive run --rm socket-client-interactive
+```
 ### **Testing**
-主要的測試功能包括
-
+#### 1. Testing details
 | **Testing Classes**   |    **Testing function**   |  **Description**    |
 |--------------- |-----------------|---       |
 |`TestSocketServer` - Unit tests for SocketServer class  | `test_server_initialization`|Test server initialisation with default and custom parameters.| 
@@ -131,10 +139,28 @@ python client.py --interactive
 | | `test_client_cli_arguments` | Test client command-line argument parsing |
 | `TestPerformance` - Basic performance tests | `test_message_throughput` | Test message throughput under normal load
 
+#### 2. Quick test
+```bash
+# redirect into test/test_socket folder
+cd test/test_socket
 
-如何進行測試
+# Run all testa with organised output
+python run_tests.py
+```
 
-測試結果如下
+#### 3. Overall results
+✅ All Tests Passed: 6/6 test categories (100% success rate)
+
+|**Test Category**   |   **Tests**  | **Status**| **Duration**|
+| ---|--- | ---| ---|
+|Unit Tests | 3 | ✅ PASSED|0.14s|
+|Error Condition Tests | 5 | ✅ PASSED | 1.26s |
+|Integration Tests | 1 | ✅ PASSED | 0.44s |
+|Multiple Client Test |  1 | ✅ PASSED | 0.44s |
+|Connection Tests | 1 | ✅ PASSED | 0.02s |
+|Performance Tests | 1 | ✅ PASSED | 0.13s |
+| **Total** | **12** | ✅ **PASSED** | **2.43s** | 
+
 
 ---
 
@@ -150,20 +176,7 @@ python client.py --interactive
 - **Synchronous Communication**: Implements a blocking request-response pattern
 - In-Memory Storage: using dictionary (user_lists) for data storage
 
-### Project Structure
-```bash
-python-rest-lab/
-├── app.py                  # Main Flask application with route handlers
-├── models.py               # User model with business logic
-├── requirements.txt        # Python dependencies
-├── users.json             # Sample user data for testing
-├── Dockerfile             # Container configuration
-├── docker-compose.yml     # Multi-container orchestration
-├── .dockerignore          # Files to exclude from Docker build
-└── README.md              # Project documentation
-```
-
-### File Descriptions
+### File Description
 #### 1. `app.py`
 - Main application entry point
 - Defines all API endpoints and route handlers
@@ -343,13 +356,13 @@ All endpoints return consistent JSON responses with three fields:
 #### 1. Local Development Setup
 Step 1: Install Dependencies
 ```bash
-mkdir python-rest-lab 
-cd python-rest-lab
+pip install -r requirements.txt
 ```
 
 Step 2: Install Dependencies
 ```bash
-pip install -r requirements.txt
+# direct to REST folder
+cd python-rest-lab
 ```
 
 Step 3: Run Application
@@ -375,6 +388,7 @@ The testing would be held manually on Postman
 POST http://localhost:5000/api/users
 ```
 Setting the Header key with “Content-Type” and value with “application/json”, then copy `{"name": "John Doe", "id": 1, "email": "john@example.com"}` in the body section. The result is shown below:
+
 
 #### Test 2 - Retrieve all users 
 ```

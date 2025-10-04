@@ -7,11 +7,12 @@ import sys
 import os
 from unittest.mock import patch, Mock
 
-# Add the current directory to the Python path for imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add the project root directory to the Python path for imports
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, project_root)
 
-from server import SocketServer
-from client import SocketClient
+from python_socket.server import SocketServer
+from python_socket.client import SocketClient
 
 
 class TestSocketServer:
@@ -72,29 +73,36 @@ class TestIntegration:
     @pytest.fixture
     def server_thread(self):
         """Fixture to start server in a separate thread."""
-        server = SocketServer('localhost', 8081)  # Use different port to avoid conflicts
+        server = SocketServer('localhost', 8081)
         server_thread = threading.Thread(target=server.start, daemon=True)
         server_thread.start()
         
-        # Wait for server to start and verify it's listening
-        max_retries = 10
-        for _ in range(max_retries):
+        max_retries = 20
+        server_ready = False
+        
+        for attempt in range(max_retries):
             try:
                 test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                test_socket.settimeout(1.0)
+                test_socket.settimeout(0.5)
                 test_socket.connect(('localhost', 8081))
                 test_socket.close()
+                server_ready = True
                 break
-            except (ConnectionRefusedError, socket.timeout):
-                time.sleep(0.1)
-        else:
+            except (ConnectionRefusedError, socket.timeout, OSError):
+                time.sleep(0.2)
+        
+        if not server_ready:
+            server.shutdown()
             pytest.skip("Server failed to start within timeout")
+        
+        # Give server a moment to be fully ready
+        time.sleep(0.2)
         
         yield server
         
         # Cleanup: shutdown server
         server.shutdown()
-        time.sleep(0.1)  # Give time for cleanup
+        time.sleep(0.2)
         
     def test_basic_communication(self, server_thread):
         """Test basic client-server communication."""

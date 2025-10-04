@@ -57,11 +57,19 @@ class SocketServer:
             logger.info("Server listening for connections...")
             
             self.running = True
-            self.setup_signal_handlers()
+            
+            try:
+                self.setup_signal_handlers()
+            except ValueError as e:
+                # Signal handlers can only be set in main thread
+                logger.debug(f"Could not set signal handlers: {e}")
             
             # Main server loop
             while self.running:
                 try:
+                    # Set timeout to allow periodic checking of self.running
+                    self.server_socket.settimeout(1.0)
+                    
                     # Accept client connection
                     client_socket, client_address = self.server_socket.accept()
                     logger.info(f"New connection from {client_address}")
@@ -75,6 +83,9 @@ class SocketServer:
                     client_thread.start()
                     self.client_threads.append(client_thread)
                     
+                except socket.timeout:
+                    # Timeout is expected, continue loop to check self.running
+                    continue
                 except socket.error as e:
                     if self.running:  # Only log if not shutting down
                         logger.error(f"Socket error: {e}")
