@@ -16,12 +16,14 @@ lab01- Synchronous Communication Patterns/
 │   ├── client.py              # TCP Socket Client implementation      
 │   ├── Dockerfile             # Server side Container configuration
 │   ├── Dockerfile.client      # Client side Container configuration
-│   └── docker-compose.yaml    # Deploye mulitiple Containers configuration
+│   ├── docker-compose.yaml    # Deploye mulitiple Containers configuration
+│   └── requirements.txt       # Python dependencies
 ├── python_rest_lab/
 │   ├── app.py                  # Main Flask application with route handlers
 │   ├── models.py               # User model with business logic
 │   ├── users.json             # Sample user data for testing
-│   └── Dockerfile             # Container configuration
+│   ├── Dockerfile             # Container configuration
+│   └── requirements.txt       # Python dependencies
 ├── python_grpc_lab/
 │   ├── proto/
 │   │   └── user_service.proto          # Protocol Buffer service definition
@@ -35,15 +37,17 @@ lab01- Synchronous Communication Patterns/
 │   ├── Dockerfile                       # Server container configuration
 │   ├── Dockerfile.client                # Client container configuration
 │   ├── docker-compose.yml               # Multi-container orchestration
-│   └── .dockerignore  
+│   ├── .dockerignore  
+│   └── requirements.txt       # Python dependencies
 ├── test/
 │   ├── test_grpc/
 │   │   ├── test_grpc_service.py             # gRPC automated testing script
 │   ├── test_socket/
-│   │   ├── run_tests.py             # socket testingtesting script
+│   │   ├── run_tests.py               # socket testingtesting script
 │   │   ├── test_socket.py             # Unit and integration tests
-│   └── benchmark.py
-├── requirements.txt                 # Python dependencies
+├── benchmark.py                       # Benchmark script for performance comparison
+├── docker-compose.yml                 # Docker compose file for performance comparison
+├── requirements.txt                   # Python dependencies
 └── README.md
 ```
 
