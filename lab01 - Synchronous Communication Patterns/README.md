@@ -81,7 +81,7 @@ The functions in class includes:
 
 #### 1. Local running
 
-Running the server
+a. Execute TCP server
 ```bash
 # Install dependenices
 pip install -r requirements.txt
@@ -97,12 +97,12 @@ The terminal would show these results:
 2025-09-29 16:44:19,235 - INFO - Server bound to localhost:8080
 2025-09-29 16:44:19,235 - INFO - Server listening for connections...
 ```
-Running the Client (Two methods)(這裡需要插入截圖)
+2. Execute Client (Two methods)
   - Single message mode:
 ```bash
 python client.py --message "Hello World"
 ```
-  - Interactive mode: type command python client.py -- interactive
+  - Interactive mode:
 ```bash
 python client.py --interactive
 ```
@@ -335,14 +335,14 @@ All endpoints return consistent JSON responses with three fields:
 - `data`: Response payload (user data or null)
 - `message`: Human-readable status message
 ```json
-# Success response
+// Success response
 { 
 "success": true, 
-"data": { ... }, 
+"data": { "users data" }, 
 "message": "Operation successful" 
 }
 
-# Error response
+// Error response
 { "success": false,
   "message": "Error description" }
 ```
@@ -387,13 +387,16 @@ The testing would be held manually on Postman
 ```
 POST http://localhost:5000/api/users
 ```
-Setting the Header key with “Content-Type” and value with “application/json”, then copy `{"name": "John Doe", "id": 1, "email": "john@example.com"}` in the body section. The result is shown below:
+Setting the Header key with “Content-Type” and value with “application/json”, then copy `{"name": "John Doe", "id": 1, "email": "john,doe@example.com"}` in the body section. The result is shown below:
+
+![Create_a_user](/lab01%20-%20Synchronous%20Communication%20Patterns/image/rest_creat_user.png)
 
 
 #### Test 2 - Retrieve all users 
 ```
 GET http://localhost:5000/api/users
 ```
+![Retrieve all users](/lab01%20-%20Synchronous%20Communication%20Patterns/image/retrieve%20specific%20user%20by%20id.png)
 
 Successfully return all users' information, HTTP status code is 200.
 
@@ -403,11 +406,15 @@ GET http://localhost:5000/api/users/4
 ```
 Successfully return the user’s information with the ID is 4, HTTP status code is 200
 
+![Retrieve specific user by ID](/lab01%20-%20Synchronous%20Communication%20Patterns/image/retrieve%20specific%20user%20by%20id.png)
+
 #### Test 4 - Update User
 ```
 PUT http://localhost:5000/api/users/1
 ```
 Setting the Header key with “Content-Type” and value with “application/json”, then copy `{"name": "Alex James", "email": "alexjames@example.com"}` in the body section, then the user’s information is updated successfully, HTTP Status code is 200
+
+![Update User](/lab01%20-%20Synchronous%20Communication%20Patterns/image/update%20user.png)
 
 #### Test 5 - Delete User 
 ```
@@ -415,44 +422,34 @@ DELETE http://localhost:5000/api/users/2
 ```
 Entered `id:2` in the URL and deleted the user’s information successfully
 
+![Delete User](/lab01%20-%20Synchronous%20Communication%20Patterns/image/delete%20user.png)
+
 
 #### Test 6 - Create Duplicate user
 Create duplicate users with the same ID, return `409` conflict
 
+![Create duplicate user](/lab01%20-%20Synchronous%20Communication%20Patterns/image/create%20duplicate%20user.png)
+
 #### Test 7 - Missing required fields
 Lack ID and email Fields, return `400` Bad Request
+
+![Missing required fields](/lab01%20-%20Synchronous%20Communication%20Patterns/image/missing%20required%20fields.png)
 
 #### Test 8 - User Not Found
 Enter user ID not exist in Users database, return `404` Not Found
 
+![User not found](/lab01%20-%20Synchronous%20Communication%20Patterns/image/User%20not%20found.png)
+
 ## Part Three: gRPC application
 ### Features
 
-- Protocol Buffers Serialisation: Efficient binary serialisation using Protocol Buffers (protobuf) for data transmission
-- Type-Safe Communication: Strongly-typed service definitions ensure compile-time type checking
-- Bidirectional Communication: gRPC's HTTP/2-based protocol supports efficient client-server interaction
+- **Protocol Buffers Serialisation**: Efficient binary serialisation using Protocol Buffers (protobuf) for data transmission
+- **Type-Safe Communication**: Strongly-typed service definitions ensure compile-time type checking
+- **Bidirectional Communication**: gRPC's HTTP/2-based protocol supports efficient client-server interaction
 - In-Memory Data Storage: Lightweight user data management without external database dependencies
-- Interactive Client Interface: User-friendly menu-driven client for testing and demonstration
+- **Interactive Client Interface**: User-friendly menu-driven client for testing and demonstration
 - Comprehensive Error Handling: Robust exception handling for network failures and invalid operations
-- Docker Support: Containerized deployment for consistent cross-platform execution and Docker health checks ensure service reliability
-
-### Project Structure
-```bash
-python-grpc-lab/
-├── proto/
-│   └── user_service.proto          # Protocol Buffer service definition
-├── generated/                       # Auto-generated gRPC code
-│   ├── user_service_pb2.py         # Protocol Buffer message classes
-│   └── user_service_pb2_grpc.py    # gRPC service stubs
-├── server.py                        # gRPC server implementation
-├── client.py                        # gRPC client with interactive menu
-├── test_grpc_service.py             # gRPC automated testing script
-├── requirements.txt                 # Python dependencies
-├── Dockerfile                       # Server container configuration
-├── Dockerfile.client                # Client container configuration
-├── docker-compose.yml               # Multi-container orchestration
-└── .dockerignore                    # Docker build exclusions
-```
+- **Docker Support**: Containerized deployment for consistent cross-platform execution and Docker health checks ensure service reliability
 
 ### File Description
 #### 1. `user_service.proto`
@@ -581,30 +578,21 @@ message GetAllUsersResponse {
 
 ### Functionalities
 #### 1. Server Implementation
-UserService Class:
-class UserService(user_service_pb2_grpc.UserServiceServicer):
-    def __init__(self):
-        self.users = {}  # In-memory storage
-Key Features:
-Thread-safe operations through gRPC's built-in concurrency handling
-Comprehensive exception handling for all operations
-Consistent response format across all methods
-Validation logic for data integrity
-Server Lifecycle:
-Initialise gRPC server with ThreadPoolExecutor (10 workers)
-Register UserService implementation
-Bind to port 50051 on all network interfaces
-Start server and wait for termination
-Graceful shutdown on keyboard interrupt
+- Thread-safe operations through gRPC's built-in concurrency handling
+- Comprehensive exception handling for all operations
+- Consistent response format across all methods
+- Validation logic for data integrity
 #### 2. Client Implementation
-Interactive Menu Options:
-Create User: Add new user with name, ID, and email
-Get User: Retrieve specific user by ID
-Get All Users: List all users in the system
-Update User: Modify user name and/or email
-Delete User: Remove user from the system
-Run Demo: Execute automated test scenario
-Exit: Close client connection
+```bash
+# Interactive Menu Options:
+1. Create User: Add new user with name, ID, and email
+2. Get User: Retrieve specific user by ID
+3. Get All Users: List all users in the system
+4. Update User: Modify user name and/or email
+5. Delete User: Remove user from the system
+6. Run Demo: Execute automated test scenario
+7. Exit: Close client connection
+```
 #### 3. Demo Mode:
 - Creates three sample users
 - Retrieves all users
@@ -621,6 +609,9 @@ pip install -r requirements.txt
 ```
 Step 2: Generate gRPC Code
 ```bash
+# Redirect to the gRPC folder
+cd python_grpc_lab
+
 # Create generated directory
 mkdir -p generated
 # Generate Python code from proto file
@@ -736,41 +727,21 @@ python test_grpc_service.py
 Test results shown below:
 
 
-## Part Four: Performance Comparison - 待修改
-7.1 Performance Comparison
-Metric
-gRPC
-REST API
-Serialization
-Binary (protobuf)
-Text (JSON)
-Payload Size
-~30% smaller
-Baseline
-Speed
-~2-5x faster
-Baseline
-Type Safety
-Compile-time
-Runtime
-Browser Support
-Limited
-Full
+## Part Four: Performance Comparison
+### Benchmark Script
+I create a benchmarking script compares the performance of REST and gRPC implementations. It measures latency, throughput, and reliability under different conditions: 
 
-7.2 Use Case Recommendations
-Use gRPC when:
-Microservices communication
-High-performance requirements
-Strong typing needed
-Streaming data required
-Use REST when:
-Public APIs
-Browser clients
-Simple CRUD operations
-Wide compatibility needed
+1. Sequential Create Operations
+    - Tests creating users one at a time
+    - Measures baseline latency
+2. Sequential Read Operations
+    - Tests reading user data
+    - Compares retrieval performance
+3. Concurrent operations
+    - Tests performance under load
+    - Simulates multiple simultaneous requests
 
-
-### Performance Comparison
+Sample Outpu
 ```bash
 ============================================================
                   DISTRIBUTED SYSTEMS LAB                   
@@ -922,3 +893,47 @@ Key Observations:
 
 Benchmark completed!
 ```
+### Key Findings
+1. Latency Performance
+gRPC demonstrates significantly superior latency performance across all test scenarios:
+
+- **Sequential Create**: gRPC is 87.8% faster (0.23ms vs 1.87ms)
+- **Sequential Read**: gRPC is 85.5% faster (0.24ms vs 1.67ms)
+- **Concurrent Operations**: gRPC is 82.9% faster (1.55ms vs 9.07ms)
+
+2. Throughput Analysis
+The throughput advantage of gRPC is substantial:
+
+- Sequential operations: gRPC achieves **8x higher throughput** (~4,200 req/s vs ~550 req/s)
+- Concurrent operations: gRPC maintains **6x higher throughput** (646 req/s vs 110 req/s)
+
+3. Performance Consistency
+gRPC exhibits more consistent performance:
+
+- Lower standard deviation across all tests (0.10-0.48ms vs 0.49-2.83ms)
+- Tighter 95th/99th percentile ranges
+- More predictable response times under load
+
+4. Scalability Under Concurrency
+Under concurrent load (10 workers), the performance gap widens:
+
+- REST latency increases 5x (1.87ms → 9.07ms)
+- gRPC latency increases only 7x (0.23ms → 1.55ms)
+- gRPC demonstrates better scalability characteristics
+
+5. Performance Comparison Metric
+
+| Metric | gRPC | REST API | 
+|---     |----- | -------- |
+| Serialization | Binary (protobuf) | Text (JSON) |
+| Payload Size | ~30% smaller | Baseline |
+| Speed | ~2-5x faster | Baseline | 
+| Type Safety | Compile-time | Runtime | 
+| Browser Support | Limited | Full | 
+
+### Conclusion
+gRPC's binary Protocol Buffers serialization and HTTP/2 multiplexing provide substantial performance advantages over JSON-based REST APIs. The **80-88%** latency reduction and 6-8x throughput improvement make gRPC particularly suitable for high-performance, low-latency microservice architectures. However, REST remains valuable for its simplicity, debugging ease, and broader ecosystem support.
+
+
+
+
