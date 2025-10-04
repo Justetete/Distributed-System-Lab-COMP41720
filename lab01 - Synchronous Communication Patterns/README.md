@@ -4,41 +4,64 @@
 
 ## Document Structure
 
-- Part one: Socket-based Client-server application
-- Part two: REST APIs application
-- Part three: gRPC application
-- Part four: Performance Comparison
+- [Part one: Socket-based Client-server application](#part-one-build-socket-based-client-server-application)
+- [Part two: REST APIs application](#part-two-rest-apis-application)
+- [Part three: gRPC application](#part-three-grpc-application)
+- [Part four: Performance Comparison](#part-four-performance-comparison---待修改)
+
+```bash
+lab01- Synchronous Communication Patterns/
+├── python_socket/
+│   ├── server.py              # TCP Socket Server implementation
+│   ├── client.py              # TCP Socket Client implementation      
+│   ├── Dockerfile             # Server side Container configuration
+│   ├── Dockerfile.client      # Client side Container configuration
+│   └── docker-compose.yaml    # Deploye mulitiple Containers configuration
+├── python_rest_lab/
+│   ├── app.py                  # Main Flask application with route handlers
+│   ├── models.py               # User model with business logic
+│   ├── users.json             # Sample user data for testing
+│   └── Dockerfile             # Container configuration
+├── python_grpc_lab/
+│   ├── proto/
+│   │   └── user_service.proto          # Protocol Buffer service definition
+│   ├── generated/                       # Auto-generated gRPC code
+│   │   ├── __init__.py         # Define generated folder as a regular package
+│   │   ├── user_service_pb2.py         # Protocol Buffer message classes
+│   │   └── user_service_pb2_grpc.py    # gRPC service stubs
+│   ├── __init__.py         # Define this folder as a regular package
+│   ├── server.py                        # gRPC server implementation
+│   ├── client.py                        # gRPC client with interactive menu
+│   ├── Dockerfile                       # Server container configuration
+│   ├── Dockerfile.client                # Client container configuration
+│   ├── docker-compose.yml               # Multi-container orchestration
+│   └── .dockerignore  
+├── test/
+│   ├── test_grpc/
+│   │   ├── test_grpc_service.py             # gRPC automated testing script
+│   ├── test_socket/
+│   │   ├── run_tests.py             # socket testingtesting script
+│   │   ├── test_socket.py             # Unit and integration tests
+│   └── benchmark.py
+├── requirements.txt                 # Python dependencies
+└── README.md
+```
 
 ## Part one: Build Socket-Based Client-Server Application
 
 ### Features
-
-- Created Server and Client by TCP protocol
-- Message Processing:
-  - Client 可以同時發送單個消息，並收到反饋
-  - 也可以互動式連續發送多條消息
-- Error handling
-- Testing
-
-### Project Structure
-
-```bash
-socket-lab/
-├── server.py              # TCP Socket Server implementation
-├── client.py              # TCP Socket Client implementation
-├── test_socket.py         # Unit and integration tests
-├── requirements.txt       # Python dependencies
-├── Dockerfile             # Server side Container configuration
-├── Dockerfile.client      # Client side Container configuration
-├── docker-compose.yaml    # Deploye mulitiple Containers configuration
-└── README.md              # This documentation
-```
+- **TCP Server**: Multi-threaded server with graceful shutdown
+- **TCP Client**: Flexible client with interactive and single-message modes
+- **Message Processing**: Converts messages to uppercase as a simple transformation
+- **Error Handling**: Comprehensive error handling for network issues
+- **Testing**: Complete unit and integration test suite
+- **Docker Support**: Containerized deployment
 
 ### Functionalities
 
 #### 1. `server.py` 
 
-Include Class SocketServer, 包含host, port number, server_socket, running status and client_threads.
+Include Class `SocketServer`, host, port number, server_socket, running status and client_threads.
 
 The functions in class includes:
 - `start()`: Create a TCP socket, setting the specific hostname and port number and start the socket server. Maintain the server loop and accept client connections
@@ -47,11 +70,7 @@ The functions in class includes:
 - `shutdown()`: Gracefully shut down the server
 - `cleanup()`: clean up resources
 
-#### 2. `client.py` 文件功能
-
-Include Class `SocketClient`, 包含host, port number, server_socket and timeout attributes.
-
-The functions in class include:
+#### 2. `client.py`
 - `connect()`: Establish connection to server and return message about if the connection successful
 - `send_message(message)`: Send message to server and wait for response
 - `disconnect()`: Close connection to server
@@ -64,11 +83,11 @@ The functions in class include:
 
 Running the server
 ```bash
-# directed to the socket-lab dictionary
-cd ~/socket-lab
-
 # Install dependenices
 pip install -r requirements.txt
+
+# directed to the socket-lab dictionary
+cd ~/python_socket
 
 # Execute Server program
 python server.py
@@ -87,7 +106,7 @@ python client.py --message "Hello World"
 ```bash
 python client.py --interactive
 ```
-這裡添加兩張截圖：啟動server 和clinet 兩個終端的截圖放在一起
+![](/image)
 
 #### 2. Docker Development
 

@@ -4,12 +4,7 @@ This is Phase 1 implementation of the Distributed Systems Lab, featuring a TCP s
 
 ## Features
 
-- **TCP Server**: Multi-threaded server with graceful shutdown
-- **TCP Client**: Flexible client with interactive and single-message modes
-- **Message Processing**: Converts messages to uppercase as a simple transformation
-- **Error Handling**: Comprehensive error handling for network issues
-- **Testing**: Complete unit and integration test suite
-- **Docker Support**: Containerized deployment
+
 
 ## Project Structure
 
