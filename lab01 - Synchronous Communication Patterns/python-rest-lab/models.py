@@ -13,13 +13,13 @@ class Users:
         Return all users as a list of dictionaries
         """
         users = []
-        for user_id, user_obj in Users.user_lists:
+        for user_id, user_obj in Users.user_lists.items():
             users.append(
                 {'id': user_id,
                  'name': user_obj.name,
                  'email': user_obj.email}
             ) # Create a JSON formate of user
-            return users
+        return users
     
     @staticmethod
     def get_user(user_id):

@@ -183,26 +183,31 @@ def run_demo(stub):
 
 def main():
     """Main function"""
-    # Create a channel to the server
-    with grpc.insecure_channel('localhost:50051') as channel:
+    # Get server connection details from environment or use defaults
+    server_host = os.getenv('GRPC_SERVER_HOST', 'localhost')
+    server_port = os.getenv('GRPC_SERVER_PORT', '50051')
+    server_address = f'{server_host}:{server_port}'
+    
+    print(f"Connecting to gRPC server at {server_address}...")
+    
+    with grpc.insecure_channel(server_address) as channel:
         # Create a stub (client)
         stub = user_service_pb2_grpc.UserServiceStub(channel)
-        
-        print("Connected to gRPC server at localhost:50051")
         
         # Check if server is running
         try:
             # Test connection with a simple call
             request = user_service_pb2.GetAllUsersRequest()
             response = stub.GetAllUsers(request)
-            print("Server is running!")
+            print(f"Connected successfully! Server is running.")
             
             # Start interactive menu
             interactive_menu(stub)
             
         except grpc.RpcError as e:
             print(f"Failed to connect to server: {e}")
-            print("Make sure the gRPC server is running on localhost:50051")
+            print(f"Make sure the gRPC server is running on {server_address}")
+            sys.exit(1)
 
 if __name__ == '__main__':
     main()

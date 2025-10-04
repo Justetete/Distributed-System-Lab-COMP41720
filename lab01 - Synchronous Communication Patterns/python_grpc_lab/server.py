@@ -106,9 +106,9 @@ class UserService(user_service_pb2_grpc.UserServiceServicer):
             
             # Update user data
             user_data = self.users[user_id]
-            if request.name:
+            if request.name and request.name.strip():
                 user_data['name'] = request.name
-            if request.email:
+            if request.email and request.email.strip():
                 user_data['email'] = request.email
             
             user = user_service_pb2.User(
