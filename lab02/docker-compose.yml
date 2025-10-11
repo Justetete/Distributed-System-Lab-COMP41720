@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  cassandra-1:
+    image: cassandra:4.1
+    container_name: cassandra-1
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_START_RPC=true
+      - CASSANDRA_RPC_ADDRESS=0.0.0.0
+      - CASSANDRA_LISTEN_ADDRESS=auto
+      - CASSANDRA_CLUSTER_NAME=TestCluster
+      - CASSANDRA_SEEDS=cassandra-1
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - CASSANDRA_NUM_TOKENS=256  # Explicitly set to standard value
+    volumes:
+      - cassandra-1-data:/var/lib/cassandra
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status | grep -E '^UN\\s+127.0.0.1' || nodetool status | grep -E '^UN'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    networks:
+      - cassandra-net
+
+  cassandra-2:
+    image: cassandra:4.1
+    container_name: cassandra-2
+    ports:
+      - "9043:9042"
+    environment:
+      - CASSANDRA_START_RPC=true
+      - CASSANDRA_RPC_ADDRESS=0.0.0.0
+      - CASSANDRA_LISTEN_ADDRESS=auto
+      - CASSANDRA_CLUSTER_NAME=TestCluster
+      - CASSANDRA_SEEDS=cassandra-1
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - CASSANDRA_NUM_TOKENS=256  # Explicitly set to standard value
+    depends_on:
+      cassandra-1:
+        condition: service_healthy
+    volumes:
+      - cassandra-2-data:/var/lib/cassandra
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status | grep -E '^UN' | wc -l | grep -q '^[2-9]' || nodetool status | grep UN"]
+      interval: 30s
+      start_period: 90s
+      timeout: 10s
+      retries: 5
+    networks:
+      - cassandra-net
+
+  cassandra-3:
+    image: cassandra:4.1
+    container_name: cassandra-3
+    ports:
+      - "9044:9042"
+    environment:
+      - CASSANDRA_START_RPC=true
+      - CASSANDRA_RPC_ADDRESS=0.0.0.0
+      - CASSANDRA_LISTEN_ADDRESS=auto
+      - CASSANDRA_CLUSTER_NAME=TestCluster
+      - CASSANDRA_SEEDS=cassandra-1
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - CASSANDRA_NUM_TOKENS=256  # Explicitly set to standard value
+    depends_on:
+      cassandra-2:
+        condition: service_healthy
+    volumes:
+      - cassandra-3-data:/var/lib/cassandra
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status | grep -E '^UN' | wc -l | grep -q '^3' || nodetool status | grep UN"]
+      interval: 30s
+      start_period: 90s
+      timeout: 10s
+      retries: 5
+    networks:
+      - cassandra-net
+
+networks:
+  cassandra-net:
+    driver: bridge
+
+volumes:
+  cassandra-1-data:
+  cassandra-2-data:
+  cassandra-3-data:
