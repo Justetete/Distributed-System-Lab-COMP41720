@@ -68,10 +68,6 @@ docker exec -it cassandra-node1 nodetool status
 ### 2. Install Python Dependencies
 
 ```bash
-# Optional: Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
 # Install required packages
 pip install -r requirements.txt
 ```
@@ -120,9 +116,21 @@ docker exec -it cassandra-node1 nodetool status
 # Access Cassandra Query Language Shell
 docker exec -it cassandra-node1 cqlsh
 
-# Verify keyspace (in cqlsh)
+# Create a keyspace for testing
+create keyspace if not exists test_rf_3 with replication = {'class':'SimpleStrategy', 'replication_factor':3};
+
 DESCRIBE KEYSPACES;
-USE lab2_keyspace;
+
+USE test_rf_3;
+
+# Create initial data model
+CREATE TABLE IF NOT EXISTS user_profiles (
+	user_id int PRIMARY KEY, 
+	username text,
+	email text,
+	last_update_timestamp timestamp 
+);
+
 DESCRIBE TABLES;
 ```
 
@@ -142,11 +150,6 @@ python write_lantency_test.py
 - Trade-offs between durability and performance
 - Impact of replication factor on write operations
 
-**Expected Behavior**:
-- ONE: Fastest writes, lowest durability guarantee
-- QUORUM: Balanced approach (majority acknowledgment)
-- ALL: Slowest writes, highest durability guarantee
-
 ---
 
 ### Part C: Consistency Model Experiments
@@ -164,10 +167,6 @@ python strong_consistency_test.py
 - Data visibility across different nodes
 - Behavior during network partition simulation
 
-**Expected Behavior**:
-- Reads immediately reflect the most recent write
-- Operations may block or fail during partition (favoring Consistency over Availability)
-
 **Key Observation**: Demonstrates the **CP** (Consistency + Partition Tolerance) trade-off
 
 ---
@@ -184,11 +183,6 @@ python eventual_consistency_test.py
 - Potential for stale reads immediately after writes
 - Convergence time for data propagation
 - Polling loop to observe eventual convergence
-
-**Expected Behavior**:
-- Initial reads may return stale data
-- Data eventually converges across all nodes
-- Higher availability, lower latency
 
 **Key Observation**: Demonstrates the **AP** (Availability + Partition Tolerance) trade-off
 
@@ -208,11 +202,6 @@ python concurrent_conflict_test.py
 - Last-Write-Wins (LWW) conflict resolution
 - Timestamp-based ordering in leaderless architecture
 
-**Expected Behavior**:
-- No write coordination required
-- Conflicts resolved automatically using timestamps
-- Demonstrates eventual consistency in practice
-
 ---
 
 ## Configuration Details
@@ -228,22 +217,18 @@ python concurrent_conflict_test.py
 ### Keyspace Configuration
 
 ```cql
-CREATE KEYSPACE lab2_keyspace 
-WITH replication = {
-    'class': 'NetworkTopologyStrategy',
-    'datacenter1': 3
-};
+create keyspace if not exists test_rf_3 with replication = {'class':'SimpleStrategy', 'replication_factor':3};
 ```
 
 ### Data Model
 
 **UserProfile Table**:
 ```cql
-CREATE TABLE user_profiles (
-    user_id UUID PRIMARY KEY,
-    username TEXT,
-    email TEXT,
-    last_login_time TIMESTAMP
+CREATE TABLE IF NOT EXISTS user_profiles (
+	user_id int PRIMARY KEY, 
+	username text,
+	email text,
+	last_update_timestamp timestamp 
 );
 ```
 
