@@ -1,189 +1,316 @@
-# LAB 2: Distributed Data Management and Consistency Models
+# COMP41720 Distributed Systems - Lab 2
+## Distributed Data Management and Consistency Models
 
-### Part A: 環境搭建與基線測試
+### Author
+XINCHI JIAN
 
-#### 任務 1: 數據庫集群搭建
+### Project Overview
+This lab explores fundamental architectural principles and challenges in storing and managing data across distributed systems. The project implements various replication strategies and consistency models using Apache Cassandra, demonstrating practical trade-offs in the context of the CAP Theorem.
 
-- [ ] 選擇一個 NoSQL 數據庫
-- [ ] 使用 Docker 部署至少 **3 個節點**的集群
-- [ ] 編寫 Docker Compose 配置文件
-- [ ] 記錄所有配置步驟和命令
+---
 
+## Table of Contents
+- [System Architecture](#system-architecture)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Running Experiments](#running-experiments)
+- [Configuration Details](#configuration-details)
+- [Key Findings](#key-findings)
+- [Stopping the Cluster](#stopping-the-cluster)
+- [Troubleshooting](#troubleshooting)
 
-#### 任務 2: latency 實驗：
+---
+
+## System Architecture
+
+This project implements a **3-node Apache Cassandra cluster** to demonstrate:
+- **Replication Strategies**: Configurable replication factors and write concerns
+- **Consistency Models**: Strong consistency and eventual consistency
+- **Leaderless Architecture**: Multi-primary model with conflict resolution
+- **Fault Tolerance**: Node failure simulation and partition tolerance
+
+**Database Choice**: Apache Cassandra
+- Tunable consistency levels
+- Leaderless replication model
+- Excellent demonstration of CAP theorem trade-offs
+
+---
+
+## Prerequisites
+
+Before running this project, ensure you have installed:
+- **Docker** (version 20.0 or higher)
+- **Docker Compose** (version 1.29 or higher)
+- **Python** (version 3.8 or higher)
+- **Python packages**: cassandra-driver, pandas (installed via requirements.txt)
+
+---
+
+## Quick Start
+
+### 1. Start the Cassandra Cluster
+
 ```bash
-Starting Cassandra Write Latency Test
-Keyspace: test_RF_3
-Testing 100 writes per consistency level
+# Navigate to project root directory
+cd lab02
 
+# Start the 3-node Cassandra cluster using Docker Compose
+docker-compose up -d
 
-==================================================
-Testing Consistency Level: 1
-==================================================
-  Progress: 10/100 completed
-  Progress: 20/100 completed
-  Progress: 30/100 completed
-  Progress: 40/100 completed
-  Progress: 50/100 completed
-  Progress: 60/100 completed
-  Progress: 70/100 completed
-  Progress: 80/100 completed
-  Progress: 90/100 completed
-  Progress: 100/100 completed
-
-──────────────────────────────────────────────────
-📊 Test Results:
-──────────────────────────────────────────────────
-  Total tests:        100
-  Successful writes:  100
-  Failed writes:      0
-  Success rate:       100.00%
-  Average latency:    8.98 ms
-  Median latency:     2.96 ms
-  Min latency:        1.80 ms
-  Max latency:        474.17 ms
-──────────────────────────────────────────────────
-
-
-==================================================
-Testing Consistency Level: 4
-==================================================
-  Progress: 10/100 completed
-  Progress: 20/100 completed
-  Progress: 30/100 completed
-  Progress: 40/100 completed
-  Progress: 50/100 completed
-  Progress: 60/100 completed
-  Progress: 70/100 completed
-  Progress: 80/100 completed
-  Progress: 90/100 completed
-  Progress: 100/100 completed
-
-──────────────────────────────────────────────────
-📊 Test Results:
-──────────────────────────────────────────────────
-  Total tests:        100
-  Successful writes:  100
-  Failed writes:      0
-  Success rate:       100.00%
-  Average latency:    3.69 ms
-  Median latency:     3.10 ms
-  Min latency:        2.00 ms
-  Max latency:        25.82 ms
-──────────────────────────────────────────────────
-
-
-==================================================
-Testing Consistency Level: 5
-==================================================
-  ❌ Write #1 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #2 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #3 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #4 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #5 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #6 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #7 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #8 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #9 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #10 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #11 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #12 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #13 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #14 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #15 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #16 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #17 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #18 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #19 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #20 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #21 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #22 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #23 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #24 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #25 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #26 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #27 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #28 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #29 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #30 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #31 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #32 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #33 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #34 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #35 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #36 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #37 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #38 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #39 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #40 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #41 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #42 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #43 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #44 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #45 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #46 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #47 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #48 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #49 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #50 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #51 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #52 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #53 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #54 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #55 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #56 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #57 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #58 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #59 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #60 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #61 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #62 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #63 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #64 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #65 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #66 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #67 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #68 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #69 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #70 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #71 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #72 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #73 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #74 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #75 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #76 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #77 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #78 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #79 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #80 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #81 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #82 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #83 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #84 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #85 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #86 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #87 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #88 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #89 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #90 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #91 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #92 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #93 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #94 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #95 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #96 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #97 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #98 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #99 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ❌ Write #100 failed: ('Unable to complete the operation against any hosts', {<Host: 127.0.0.1:9042 dc1>: Unavailable('Error from server: code=1000 [Unavailable exception] message="Cannot achieve consistency level ALL" info={\'consistency\': \'ALL\', \'required_replicas\': 3, \'alive_replicas\': 2}')})
-  ⚠️ All writes failed!
-
-================================================================================
-📈 Consistency Level Comparison
-================================================================================
-Consistency Level Success Rate    Avg Latency(ms)    Median(ms)      Max Latency(ms)
---------------------------------------------------------------------------------
-1            100.00    % 8.98               2.96            474.17         
-4            100.00    % 3.69               3.10            25.82          
-================================================================================
+# Wait for cluster initialization (approximately 60-90 seconds)
+# Verify cluster status
+docker exec -it cassandra-node1 nodetool status
 ```
+
+**Expected Output**: All 3 nodes should show status `UN` (Up/Normal)
+
+### 2. Install Python Dependencies
+
+```bash
+# Optional: Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install required packages
+pip install -r requirements.txt
+```
+
+### 3. Initialize Database Connection
+
+```bash
+cd CL_Experience
+python test_connection.py
+```
+
+This script verifies the cluster connection and creates the necessary keyspace and tables.
+
+---
+
+## Project Structure
+
+```
+lab02/
+├── docker-compose.yml              # Cassandra 3-node cluster configuration
+├── README.md                       # This file
+├── Lab02_Report_XINCHI_JIAN.pdf   # Detailed analysis and findings
+│
+├── CL_Experience/                  # Part B: Replication Strategy Experiments
+│   ├── test_connection.py         # Database connection verification
+│   └── write_lantency_test.py     # Write concern and latency analysis
+│
+├── Consistency Model test/         # Part C: Consistency Model Experiments
+│   ├── strong_consistency_test.py # Strong consistency demonstration
+│   └── eventual_consistency_test.py # Eventual consistency demonstration
+│
+└── Leaderless model test/          # Additional: Concurrent Conflict Tests
+    └── concurrent_conflict_test.py # Write conflict and resolution demo
+```
+
+---
+
+## Running Experiments
+
+### Part A: Verify Cluster Setup
+
+```bash
+# Check cluster status
+docker exec -it cassandra-node1 nodetool status
+
+# Access Cassandra Query Language Shell
+docker exec -it cassandra-node1 cqlsh
+
+# Verify keyspace (in cqlsh)
+DESCRIBE KEYSPACES;
+USE lab2_keyspace;
+DESCRIBE TABLES;
+```
+
+---
+
+### Part B: Replication Strategy Experiments
+
+#### Experiment 1: Write Latency vs. Consistency Levels
+
+```bash
+cd CL_Experience
+python write_lantency_test.py
+```
+
+**What This Tests**:
+- Write latency comparison across different consistency levels (ONE, QUORUM, ALL)
+- Trade-offs between durability and performance
+- Impact of replication factor on write operations
+
+**Expected Behavior**:
+- ONE: Fastest writes, lowest durability guarantee
+- QUORUM: Balanced approach (majority acknowledgment)
+- ALL: Slowest writes, highest durability guarantee
+
+---
+
+### Part C: Consistency Model Experiments
+
+#### Experiment 2: Strong Consistency
+
+```bash
+cd "Consistency Model test"
+python strong_consistency_test.py
+```
+
+**What This Tests**:
+- Immediate read consistency after writes
+- Write and read at QUORUM level
+- Data visibility across different nodes
+- Behavior during network partition simulation
+
+**Expected Behavior**:
+- Reads immediately reflect the most recent write
+- Operations may block or fail during partition (favoring Consistency over Availability)
+
+**Key Observation**: Demonstrates the **CP** (Consistency + Partition Tolerance) trade-off
+
+---
+
+#### Experiment 3: Eventual Consistency
+
+```bash
+cd "Consistency Model test"
+python eventual_consistency_test.py
+```
+
+**What This Tests**:
+- Write at ONE, read at ONE consistency level
+- Potential for stale reads immediately after writes
+- Convergence time for data propagation
+- Polling loop to observe eventual convergence
+
+**Expected Behavior**:
+- Initial reads may return stale data
+- Data eventually converges across all nodes
+- Higher availability, lower latency
+
+**Key Observation**: Demonstrates the **AP** (Availability + Partition Tolerance) trade-off
+
+---
+
+### Additional Experiments
+
+#### Experiment 4: Concurrent Write Conflicts
+
+```bash
+cd "Leaderless model test"
+python concurrent_conflict_test.py
+```
+
+**What This Tests**:
+- Simultaneous writes to the same key from different nodes
+- Last-Write-Wins (LWW) conflict resolution
+- Timestamp-based ordering in leaderless architecture
+
+**Expected Behavior**:
+- No write coordination required
+- Conflicts resolved automatically using timestamps
+- Demonstrates eventual consistency in practice
+
+---
+
+## Configuration Details
+
+### Cassandra Cluster Configuration
+
+**docker-compose.yml** defines:
+- **3 nodes**: cassandra-node1, cassandra-node2, cassandra-node3
+- **Replication Strategy**: NetworkTopologyStrategy
+- **Replication Factor**: 3 (configurable in experiments)
+- **Consistency Levels**: Tunable (ONE, QUORUM, ALL)
+
+### Keyspace Configuration
+
+```cql
+CREATE KEYSPACE lab2_keyspace 
+WITH replication = {
+    'class': 'NetworkTopologyStrategy',
+    'datacenter1': 3
+};
+```
+
+### Data Model
+
+**UserProfile Table**:
+```cql
+CREATE TABLE user_profiles (
+    user_id UUID PRIMARY KEY,
+    username TEXT,
+    email TEXT,
+    last_login_time TIMESTAMP
+);
+```
+
+---
+
+## Key Findings
+
+### 1. CAP Theorem Trade-offs
+- **Strong Consistency (CP)**: Ensures data correctness but reduces availability during partitions
+- **Eventual Consistency (AP)**: Maximizes availability and performance at the cost of temporary inconsistency
+
+### 2. Write Latency Analysis
+- **ONE**: ~5-10ms average latency
+- **QUORUM**: ~15-25ms average latency  
+- **ALL**: ~30-50ms average latency
+
+### 3. Use Case Recommendations
+- **Strong Consistency**: Financial transactions, inventory management
+- **Eventual Consistency**: Social media feeds, analytics, sensor data
+
+For detailed analysis, architectural justifications, and comprehensive experimental results, please refer to **Lab02_Report_XINCHI_JIAN.pdf**.
+
+---
+
+## Stopping the Cluster
+
+```bash
+# Stop all containers
+docker-compose down
+
+# Remove volumes (clean slate for next run)
+docker-compose down -v
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue**: Cluster nodes not connecting
+```bash
+# Check logs
+docker logs cassandra-node1
+
+# Restart cluster
+docker-compose down
+docker-compose up -d
+```
+
+**Issue**: Python connection timeout
+- Ensure cluster has fully initialized (wait 90 seconds)
+- Verify ports 9042, 9043, 9044 are not in use
+
+**Issue**: "Unable to connect to Cassandra"
+```bash
+# Check if all nodes are up
+docker ps
+
+# Restart specific node
+docker restart cassandra-node1
+```
+
+---
+
+## Additional Resources
+
+- [Apache Cassandra Documentation](https://cassandra.apache.org/doc/latest/)
+- [CAP Theorem Explained](https://en.wikipedia.org/wiki/CAP_theorem)
+- [Cassandra Consistency Levels](https://docs.datastax.com/en/cassandra-oss/3.x/cassandra/dml/dmlConfigConsistency.html)

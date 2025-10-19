@@ -9,8 +9,8 @@ session = cluster.connect('test_rf_3')
 # Test parameters
 NUM_TEST = 100
 CONSISTENCY_LEVELS = [
-    ConsistencyLevel.QUORUM,
     ConsistencyLevel.ONE,
+    ConsistencyLevel.QUORUM,
     ConsistencyLevel.ALL
 ]
 
@@ -29,9 +29,9 @@ def test_write_latency(consistency_level, num_tests=NUM_TEST):
     for i in range(num_tests):
         # Prepare INSERT statement
         statement = f"""
-            INSERT INTO user_profiles_writing_test_latency 
+            INSERT INTO test_write_CL 
             (user_id, username, email, last_update_timestamp) 
-            VALUES (uuid(), 'test_user_{i}', 'test_{i}@email.com', toTimestamp(now()))
+            VALUES ({i}, 'test_user_{i}', 'test_{i}@email.com', toTimestamp(now()))
         """
         
         try:
