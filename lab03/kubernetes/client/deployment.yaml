@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-deployment
+  labels:
+    app: client
+spec:
+  # Number of pod replicas
+  replicas: 1
+  
+  selector:
+    matchLabels:
+      app: client
+  
+  template:
+    metadata:
+      labels:
+        app: client
+    
+    spec:
+      containers:
+      - name: client
+        image: client-service:latest
+        imagePullPolicy: Never  # Important for Minikube - use local image
+        
+        ports:
+        - containerPort: 8080
+          name: http
+        
+        env:
+        # Backend Service URL - using Kubernetes Service DNS name
+        - name: BACKEND_URL
+          value: "http://backend-service:5000"  # KEY: Use Service DNS name!
+        
+        - name: CLIENT_PORT
+          value: "8080"
+        
+        - name: REQUEST_TIMEOUT
+          value: "5"  # Request timeout in seconds
+        
+        - name: DEBUG
+          value: "False"
+        
+        - name: LOG_LEVEL
+          value: "INFO"
+        
+        # Resource limits (optional but recommended)
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        
+        # Health check configuration
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3

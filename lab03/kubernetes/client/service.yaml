@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-service
+  labels:
+    app: client
+spec:
+  # NodePort type - accessible from outside the cluster
+  type: NodePort
+  
+  # Select pods with label app: client
+  selector:
+    app: client
+  
+  ports:
+  - name: http
+    port: 8080          # Service port
+    targetPort: 8080    # Container port
+    nodePort: 30080     # External port (30000-32767)
+    protocol: TCP
+  
+  # Session affinity (optional)
+  sessionAffinity: None

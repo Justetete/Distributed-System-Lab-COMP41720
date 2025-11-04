@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend-service:
+    build:
+      context: ./services/backend_services
+      dockerfile: Dockerfile
+    container_name: backend-service
+    ports:
+      - "5000:5000"
+    environment:
+      # Fault Injection Configuration
+      - FAULT_INJECTION_ENABLED=true
+      - FAULT_DELAY_RATE=0.3
+      - FAULT_ERROR_RATE=0.2
+      - FAULT_TIMEOUT_RATE=0.1
+      - FAULT_MIN_DELAY=1.0
+      - FAULT_MAX_DELAY=5.0
+    networks:
+      - lab3-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # Client Service
+  client-service:
+    build:
+      context: ./services/client_services
+      dockerfile: Dockerfile
+    container_name: client-service
+    ports:
+      - "8080:8080"
+    environment:
+      - BACKEND_URL=http://backend-service:5000
+      - CLIENT_PORT=8080
+      - REQUEST_TIMEOUT=5
+      - DEBUG=False
+    depends_on:
+      backend-service:
+        condition: service_healthy
+    networks:
+      - lab3-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8080/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  lab3-network:
+    driver: bridge
+    name: lab3-network
