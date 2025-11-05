@@ -13,6 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/client_app.py .
 COPY src/backend_client.py .
 COPY src/config.py .
+COPY src/retry_logic.py .
+COPY src/circuit_breaker.py .
 
 # Expose port 8080
 EXPOSE 8080

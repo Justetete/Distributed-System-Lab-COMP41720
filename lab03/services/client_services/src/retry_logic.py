@@ -197,7 +197,7 @@ def retry_on_transient_error(config: RetryConfig = None):
             ),
             
             # Only retry on transient errors
-            retry=retry_if_exception_type(Exception) & retry_if_exception(is_transient_error),
+            retry=retry_if_exception(is_transient_error),
             
             # Log before sleeping (before retry)
             before_sleep=before_sleep_log(logger, logging.WARNING),
