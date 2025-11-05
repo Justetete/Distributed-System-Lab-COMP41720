@@ -1,6 +1,7 @@
 import requests
 import logging
 from config import config
+from retry_logic import retry_on_transient_error, RetryConfig
 
 
 # Configure logging
@@ -9,6 +10,15 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+# Configure retry behavior
+retry_config = RetryConfig(
+    max_attempts=3,      # Retry up to 3 times
+    min_wait=1.0,        # Start with 1 second wait
+    max_wait=10.0,       # Max 10 seconds wait
+    multiplier=2.0       # Double the wait time each retry
+)
 
 
 class BackendClient:
@@ -35,9 +45,10 @@ class BackendClient:
         self.timeout = timeout or config.REQUEST_TIMEOUT
         logger.info(f"BackendClient initialized with base_url: {self.base_url}")
     
+    @retry_on_transient_error(retry_config)
     def _make_request(self, method, endpoint, **kwargs):
         """
-        Internal method to make HTTP requests with error handling
+        Internal method to make HTTP requests with error handling and retry logic
         
         Args:
             method: HTTP method (GET, POST, PUT, DELETE)
@@ -53,60 +64,29 @@ class BackendClient:
         if 'timeout' not in kwargs:
             kwargs['timeout'] = self.timeout
         
+        logger.info(f"Making {method} request to {url}")
+        response = requests.request(method, url, **kwargs)
+        
+        logger.info(f"Response status: {response.status_code}")
+        
+        # Check if this is a retryable HTTP error status
+        if response.status_code in [429, 500, 502, 503, 504]:
+            logger.warning(f"Retryable HTTP error: {response.status_code}")
+            # Raise HTTPError to trigger retry
+            response.raise_for_status()
+        
+        # Parse JSON response
         try:
-            logger.info(f"Making {method} request to {url}")
-            response = requests.request(method, url, **kwargs)
-            
-            logger.info(f"Response status: {response.status_code}")
-            
-            # Parse JSON response
-            try:
-                response_data = response.json()
-            except ValueError:
-                response_data = {'message': response.text}
-            
-            # Return response with status code
-            return {
-                'status_code': response.status_code,
-                'data': response_data,
-                'success': 200 <= response.status_code < 300
-            }
-            
-        except requests.exceptions.Timeout:
-            logger.error(f"Timeout error for {method} {url}")
-            return {
-                'status_code': 504,
-                'data': {
-                    'success': False,
-                    'message': 'Backend service request timeout'
-                },
-                'success': False,
-                'error_type': 'timeout'
-            }
+            response_data = response.json()
+        except ValueError:
+            response_data = {'message': response.text}
         
-        except requests.exceptions.ConnectionError:
-            logger.error(f"Connection error for {method} {url}")
-            return {
-                'status_code': 503,
-                'data': {
-                    'success': False,
-                    'message': 'Backend service unavailable'
-                },
-                'success': False,
-                'error_type': 'connection'
-            }
-        
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request error for {method} {url}: {str(e)}")
-            return {
-                'status_code': 500,
-                'data': {
-                    'success': False,
-                    'message': f'Backend service error: {str(e)}'
-                },
-                'success': False,
-                'error_type': 'request'
-            }
+        # Return response with status code
+        return {
+            'status_code': response.status_code,
+            'data': response_data,
+            'success': 200 <= response.status_code < 300
+        }
     
     def get_users(self):
         """
@@ -116,7 +96,31 @@ class BackendClient:
             dict: Response containing list of users
         """
         logger.info("Fetching all users from backend")
-        return self._make_request('GET', '/users')
+        try:
+            return self._make_request('GET', '/users')
+        except requests.exceptions.HTTPError as e:
+            # All retries failed with HTTP error
+            status_code = e.response.status_code if e.response else 500
+            logger.error(f"Failed to get users after all retries: {status_code}")
+            return {
+                'status_code': status_code,
+                'data': {
+                    'success': False,
+                    'message': f'Backend service error after retries: {status_code}'
+                },
+                'success': False
+            }
+        except Exception as e:
+            # All retries failed with other error
+            logger.error(f"Failed to get users after all retries: {str(e)}")
+            return {
+                'status_code': 503,
+                'data': {
+                    'success': False,
+                    'message': f'Backend service unavailable after retries'
+                },
+                'success': False
+            }
     
     def get_user(self, user_id):
         """
@@ -129,7 +133,29 @@ class BackendClient:
             dict: Response containing user data or error
         """
         logger.info(f"Fetching user {user_id} from backend")
-        return self._make_request('GET', f'/users/{user_id}')
+        try:
+            return self._make_request('GET', f'/users/{user_id}')
+        except requests.exceptions.HTTPError as e:
+            status_code = e.response.status_code if e.response else 500
+            logger.error(f"Failed to get user {user_id} after all retries: {status_code}")
+            return {
+                'status_code': status_code,
+                'data': {
+                    'success': False,
+                    'message': f'Backend service error after retries: {status_code}'
+                },
+                'success': False
+            }
+        except Exception as e:
+            logger.error(f"Failed to get user {user_id} after all retries: {str(e)}")
+            return {
+                'status_code': 503,
+                'data': {
+                    'success': False,
+                    'message': 'Backend service unavailable after retries'
+                },
+                'success': False
+            }
     
     def create_user(self, user_data):
         """
