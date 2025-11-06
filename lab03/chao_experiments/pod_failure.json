@@ -1,0 +1,114 @@
+{
+  "version": "1.0.0",
+  "title": "Backend Pod Failure - Circuit Breaker Validation",
+  "description": "Validate that the circuit breaker opens when backend pods are deleted and automatically recovers when pods are restored",
+  "tags": [
+    "kubernetes",
+    "circuit-breaker",
+    "pod-failure",
+    "resilience"
+  ],
+  "configuration": {
+    "namespace": {
+      "type": "env",
+      "key": "KUBERNETES_NAMESPACE",
+      "default": "default"
+    }
+  },
+  "steady-state-hypothesis": {
+    "title": "System is healthy and responsive",
+    "probes": [
+      {
+        "type": "probe",
+        "name": "client-service-is-ready",
+        "tolerance": true,
+        "provider": {
+          "type": "python",
+          "module": "chaosk8s.pod.probes",
+          "func": "pods_in_phase",
+          "arguments": {
+            "label_selector": "app=client",
+            "phase": "Running",
+            "ns": "${namespace}"
+          }
+        }
+      },
+      {
+        "type": "probe",
+        "name": "backend-service-is-ready",
+        "tolerance": true,
+        "provider": {
+          "type": "python",
+          "module": "chaosk8s.pod.probes",
+          "func": "pods_in_phase",
+          "arguments": {
+            "label_selector": "app=backend",
+            "phase": "Running",
+            "ns": "${namespace}"
+          }
+        }
+      },
+      {
+        "type": "probe",
+        "name": "client-can-reach-backend",
+        "tolerance": 200,
+        "provider": {
+          "type": "http",
+          "url": "http://localhost:8080/health",
+          "timeout": 5
+        }
+      }
+    ]
+  },
+  "method": [
+    {
+      "type": "action",
+      "name": "delete-backend-pod",
+      "provider": {
+        "type": "python",
+        "module": "chaosk8s.pod.actions",
+        "func": "terminate_pods",
+        "arguments": {
+          "label_selector": "app=backend",
+          "ns": "${namespace}",
+          "rand": true,
+          "qty": 1
+        }
+      },
+      "pauses": {
+        "after": 5
+      }
+    }
+  ],
+  "rollbacks": [
+    {
+      "type": "action",
+      "name": "ensure-backend-deployment-exists",
+      "provider": {
+        "type": "python",
+        "module": "chaosk8s.deployment.actions",
+        "func": "scale_deployment",
+        "arguments": {
+          "name": "backend-deployment",
+          "replicas": 1,
+          "ns": "${namespace}"
+        }
+      }
+    }
+  ],
+  "probes": [
+    {
+      "type": "probe",
+      "name": "check-circuit-breaker-response",
+      "tolerance": 200,
+      "provider": {
+        "type": "http",
+        "url": "http://localhost:8080/client/users/1",
+        "timeout": 10
+      },
+      "pauses": {
+        "after": 2
+      }
+    }
+  ]
+}

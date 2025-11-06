@@ -1,0 +1,29 @@
+
+## Circuit Breaker structure
+```bash
+┌─────────────────────────────────────────────────────────────┐
+│                       Client Service                         │
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │              Backend Client                         │    │
+│  │                                                     │    │
+│  │  ┌──────────────────────────────────────────┐     │    │
+│  │  │      Circuit Breaker (State Machine)     │     │    │
+│  │  │                                           │     │    │
+│  │  │  States: CLOSED → OPEN → HALF_OPEN       │     │    │
+│  │  │                                           │     │    │
+│  │  │  Configuration:                           │     │    │
+│  │  │  - Failure Threshold: 5 failures         │     │    │
+│  │  │  - Recovery Timeout: 30 seconds          │     │    │
+│  │  │  - Success Threshold: 2 successes        │     │    │
+│  │  └──────────────────────────────────────────┘     │    │
+│  │                      ↓                             │    │
+│  │              Retry Logic (if CLOSED)               │    │
+│  │                      ↓                             │    │
+│  │              HTTP Request                          │    │
+│  └────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+                    Backend Service
+```
+

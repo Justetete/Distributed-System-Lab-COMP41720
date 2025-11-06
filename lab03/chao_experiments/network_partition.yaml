@@ -1,0 +1,66 @@
+---
+# Network Policy: Block all traffic to backend service
+# This simulates a complete network partition
+#
+# Apply with: kubectl apply -f network_policy_block.yaml
+# Remove with: kubectl delete -f network_policy_block.yaml
+#
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: block-backend-traffic
+  namespace: default
+spec:
+  # Apply to backend pods
+  podSelector:
+    matchLabels:
+      app: backend
+  
+  # Policy types
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # Ingress rules: DENY ALL (empty array = deny all)
+  ingress: []
+  
+  # Egress rules: DENY ALL (empty array = deny all)
+  egress: []
+
+---
+# Alternative: Block only from client to backend
+# This is more targeted and realistic
+#
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: block-client-to-backend
+  namespace: default
+spec:
+  # Apply to backend pods
+  podSelector:
+    matchLabels:
+      app: backend
+  
+  policyTypes:
+  - Ingress
+  
+  # Allow traffic from everything EXCEPT client
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: app
+          operator: NotIn
+          values:
+          - client
+
+---
+# Note: NetworkPolicies require a network plugin that supports them
+# Minikube: Enable with "minikube start --network-plugin=cni --cni=calico"
+# 
+# If NetworkPolicies don't work in your environment, use the simpler method:
+# kubectl scale deployment/backend-deployment --replicas=0
+#
