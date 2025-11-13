@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  labels:
+    app: product-service
+    tier: backend
+    component: microservice
+spec:
+  type: ClusterIP
+  selector:
+    app: product-service
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  sessionAffinity: None

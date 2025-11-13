@@ -1,0 +1,147 @@
+---
+# ConfigMap for Product Service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-service-config
+  labels:
+    app: product-service
+    tier: backend
+data:
+  # Application Configuration
+  SPRING_APPLICATION_NAME: "product-service"
+  SERVER_PORT: "8080"
+
+  # Database Configuration
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://product-db:5432/productdb"
+  SPRING_DATASOURCE_USERNAME: "postgres"
+  SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+
+  # JPA Configuration
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_JPA_SHOW_SQL: "false"
+
+  # Eureka Configuration
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+  EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+  EUREKA_CLIENT_FETCH_REGISTRY: "true"
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+  EUREKA_INSTANCE_HOSTNAME: "product-service"
+
+  # Actuator Configuration
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics,prometheus"
+  MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
+
+  # JVM Configuration
+  JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xms256m -Xmx512m"
+
+  # Logging Configuration
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_COM_MYPRODUCT: "DEBUG"
+
+---
+# ConfigMap for Order Service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  labels:
+    app: order-service
+    tier: backend
+data:
+  # Application Configuration
+  SPRING_APPLICATION_NAME: "order-service"
+  SERVER_PORT: "8081"
+
+  # Database Configuration
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://order-db:5432/orderdb"
+  SPRING_DATASOURCE_USERNAME: "postgres"
+  SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+
+  # JPA Configuration
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_JPA_SHOW_SQL: "false"
+
+  # Eureka Configuration
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+  EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+  EUREKA_CLIENT_FETCH_REGISTRY: "true"
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+  EUREKA_INSTANCE_HOSTNAME: "order-service"
+
+  # Product Service Integration
+  PRODUCT_SERVICE_URL: "http://product-service:8080"
+
+  # Actuator Configuration
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics,prometheus"
+  MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
+
+  # Feign Configuration
+  FEIGN_CLIENT_CONFIG_DEFAULT_CONNECTTIMEOUT: "5000"
+  FEIGN_CLIENT_CONFIG_DEFAULT_READTIMEOUT: "10000"
+  LOGGING_LEVEL_FEIGN: "DEBUG"
+
+  # JVM Configuration
+  JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xms256m -Xmx512m"
+
+  # Logging Configuration
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_COM_MYPRODUCT: "DEBUG"
+
+---
+# ConfigMap for API Gateway
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  labels:
+    app: api-gateway
+    tier: gateway
+data:
+  # Application Configuration
+  SPRING_APPLICATION_NAME: "api-gateway"
+  SERVER_PORT: "8080"
+
+  # Eureka Configuration
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+  EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+  EUREKA_CLIENT_FETCH_REGISTRY: "true"
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+  EUREKA_INSTANCE_HOSTNAME: "api-gateway"
+
+  # Gateway Discovery Configuration
+  SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED: "true"
+  SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_LOWERCASESERVICEID: "true"
+
+  # Backend Service URLs (for direct routing)
+  PRODUCT_SERVICE_URL: "http://product-service:8080"
+  ORDER_SERVICE_URL: "http://order-service:8081"
+
+  # Gateway Route Configuration
+  SPRING_CLOUD_GATEWAY_ROUTES_0_ID: "product-service"
+  SPRING_CLOUD_GATEWAY_ROUTES_0_URI: "lb://product-service"
+  SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: "Path=/api/products/**"
+  SPRING_CLOUD_GATEWAY_ROUTES_0_FILTERS_0: "StripPrefix=1"
+
+  SPRING_CLOUD_GATEWAY_ROUTES_1_ID: "order-service"
+  SPRING_CLOUD_GATEWAY_ROUTES_1_URI: "lb://order-service"
+  SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0: "Path=/api/orders/**"
+  SPRING_CLOUD_GATEWAY_ROUTES_1_FILTERS_0: "StripPrefix=1"
+
+  # Actuator Configuration
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,gateway,metrics,prometheus"
+  MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
+  MANAGEMENT_ENDPOINT_GATEWAY_ENABLED: "true"
+
+  # Gateway Global Configuration
+  SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[/**]_ALLOWEDORIGINS: "*"
+  SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[/**]_ALLOWEDMETHODS: "GET,POST,PUT,DELETE,OPTIONS"
+  SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[/**]_ALLOWEDHEADERS: "*"
+
+  # JVM Configuration
+  JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xms256m -Xmx512m"
+
+  # Logging Configuration
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY: "DEBUG"
+  LOGGING_LEVEL_REACTOR_NETTY: "INFO"

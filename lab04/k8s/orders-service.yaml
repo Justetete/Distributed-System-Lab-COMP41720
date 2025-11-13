@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  labels:
+    app: order-service
+    tier: backend
+    component: microservice
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service
+  ports:
+  - name: http
+    port: 8081
+    targetPort: 8081
+    protocol: TCP
+  sessionAffinity: None
