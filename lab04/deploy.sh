@@ -122,7 +122,48 @@ fi
 
 cd k8s
 
-# Deploy ConfigMaps first (services depend on them)
+# Deploy Databases first (services depend on them)
+print_info "Deploying PostgreSQL Databases..."
+if [ -d "databases" ]; then
+    if [ -f "databases/product-db.yaml" ]; then
+        kubectl apply -f databases/product-db.yaml
+        print_success "Product Database manifest applied"
+    fi
+
+    if [ -f "databases/order-db.yaml" ]; then
+        kubectl apply -f databases/order-db.yaml
+        print_success "Order Database manifest applied"
+    fi
+
+    echo ""
+    print_info "Waiting for databases to be ready..."
+
+    # Wait for product-db to be ready
+    if kubectl get statefulset product-db > /dev/null 2>&1; then
+        print_info "Waiting for product-db to be ready (timeout: 120s)..."
+        if kubectl wait --for=condition=ready pod -l app=product-db --timeout=120s 2>/dev/null; then
+            print_success "product-db is ready"
+        else
+            print_warning "product-db not ready yet, continuing anyway..."
+        fi
+    fi
+
+    # Wait for order-db to be ready
+    if kubectl get statefulset order-db > /dev/null 2>&1; then
+        print_info "Waiting for order-db to be ready (timeout: 120s)..."
+        if kubectl wait --for=condition=ready pod -l app=order-db --timeout=120s 2>/dev/null; then
+            print_success "order-db is ready"
+        else
+            print_warning "order-db not ready yet, continuing anyway..."
+        fi
+    fi
+else
+    print_warning "databases directory not found, skipping database deployment"
+fi
+
+echo ""
+
+# Deploy ConfigMaps (services depend on them)
 print_info "Deploying ConfigMaps..."
 if [ -f "configmaps.yaml" ]; then
     kubectl apply -f configmaps.yaml

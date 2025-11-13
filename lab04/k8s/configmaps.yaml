@@ -134,9 +134,8 @@ data:
   MANAGEMENT_ENDPOINT_GATEWAY_ENABLED: "true"
 
   # Gateway Global Configuration
-  SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[/**]_ALLOWEDORIGINS: "*"
-  SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[/**]_ALLOWEDMETHODS: "GET,POST,PUT,DELETE,OPTIONS"
-  SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[/**]_ALLOWEDHEADERS: "*"
+  # Note: CORS configuration with [/**] patterns should be configured in application.properties
+  # as environment variables cannot contain square brackets in Kubernetes ConfigMaps
 
   # JVM Configuration
   JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xms256m -Xmx512m"

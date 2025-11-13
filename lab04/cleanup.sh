@@ -108,6 +108,18 @@ if [ -d "k8s" ]; then
     fi
     print_success "ConfigMaps deleted"
 
+    # Delete Databases (last, after all services)
+    print_info "Deleting PostgreSQL Databases..."
+    if [ -d "databases" ]; then
+        if [ -f "databases/order-db.yaml" ]; then
+            kubectl delete -f databases/order-db.yaml --ignore-not-found=true
+        fi
+        if [ -f "databases/product-db.yaml" ]; then
+            kubectl delete -f databases/product-db.yaml --ignore-not-found=true
+        fi
+        print_success "Databases deleted"
+    fi
+
     cd ..
 else
     print_warning "k8s directory not found"
@@ -119,6 +131,7 @@ kubectl delete deployments,services -l tier=backend --ignore-not-found=true
 kubectl delete deployments,services -l tier=gateway --ignore-not-found=true
 kubectl delete configmaps -l tier=backend --ignore-not-found=true
 kubectl delete configmaps -l tier=gateway --ignore-not-found=true
+kubectl delete statefulsets,services -l tier=database --ignore-not-found=true
 
 # Wait for pods to terminate
 print_info "Waiting for pods to terminate..."
@@ -178,6 +191,22 @@ if [[ $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
     fi
 else
     print_info "Docker images preserved"
+fi
+
+# Optional: Clean up Persistent Volume Claims (Database Data)
+echo ""
+print_header "Database Persistent Volume Cleanup (Optional)"
+echo ""
+print_warning "This will delete all database data permanently!"
+read -p "Do you want to remove database persistent volumes? (yes/no): " -r
+echo ""
+
+if [[ $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
+    print_info "Removing persistent volume claims..."
+    kubectl delete pvc -l tier=database --ignore-not-found=true 2>/dev/null || print_warning "No database PVCs found"
+    print_success "Persistent volume claims removed"
+else
+    print_info "Database persistent volumes preserved (data retained)"
 fi
 
 # Summary
